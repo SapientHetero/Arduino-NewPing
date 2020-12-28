@@ -1,5 +1,5 @@
-Description: modified NewPing library (ultrasonic sensors)
+# NewPing Arduino Library for Arduino
 
-Original author: Tim Eckel
+# Modified to use Timer 5 on Mega2560 to avoid conflicting with TONE library, which uses Timer 2.
 
-Homepage: https://code.google.com/p/arduino-new-ping/
+## See the [NewPing Wiki](https://bitbucket.org/teckel12/arduino-new-ping/wiki/Home) for documentation
