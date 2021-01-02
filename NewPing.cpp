@@ -205,10 +205,10 @@ void NewPing::set_max_distance(unsigned int max_cm_distance) {
 	}
 
 
-	boolean NewPing::check_timer() {
+	unsigned long NewPing::check_timer() {
 		if (micros() > _max_time) { // Outside the time-out limit.
 			timer_stop();           // Disable timer interrupt
-			return false;           // Cancel ping timer.
+			return ECHO_TIMEOUT;    // Cancel ping timer.
 		}
 
 	#if URM37_ENABLED == false
@@ -218,10 +218,10 @@ void NewPing::set_max_distance(unsigned int max_cm_distance) {
 	#endif
 			timer_stop();                // Disable timer interrupt
 			ping_result = (micros() - (_max_time - _maxEchoTime) - PING_TIMER_OVERHEAD); // Calculate ping time including overhead.
-			return true;                 // Return ping echo true.
+			return ping_result;                 // Return ping echo true.
 		}
 
-		return false; // Return false because there's no ping echo yet.
+		return ECHO_WAIT; // Return false because there's no ping echo yet.
 	}
 
 
@@ -250,7 +250,7 @@ void NewPing::set_max_distance(unsigned int max_cm_distance) {
 		itimer.begin(userFunc, frequency);           // Really simple on the Teensy 3.x, calls userFunc every 'frequency' uS.
 	#elif defined (__arm__) && defined (PARTICLE)    // Timer for Particle devices
 		itimer.begin(userFunc, frequency, uSec);     // Really simple on the Particle, calls userFunc every 'frequency' uS.
-	#elif defined (USE_MEGA_TIMER5)
+	#elif defined (USE_MEGA_TIMER5) && defined(__AVR_ATmega2560__)
 		OCR5A = min((frequency>>2) - 1, 255); // Every count is 4uS, so divide by 4 (bitwise shift right 2) subtract one, then make sure we don't go over 255 limit.
 		TIMSK5 |= (1<<OCIE5A);                // Enable Timer5 interrupt.
 	#else
@@ -273,7 +273,7 @@ void NewPing::set_max_distance(unsigned int max_cm_distance) {
 		itimer.begin(NewPing::timer_ms_cntdwn, 1000);       // Set timer to 1ms (1000 uS).
 	#elif defined (__arm__) && defined (PARTICLE)           // Timer for Particle
 		itimer.begin(NewPing::timer_ms_cntdwn, 1000, uSec); // Set timer to 1ms (1000 uS).
-	#elif defined (USE_MEGA_TIMER5)
+	#elif defined (USE_MEGA_TIMER5) && defined(__AVR_ATmega2560__)
 		// do nothing
 	#else
 		OCR2A = 249;           // Every count is 4uS, so 1ms = 250 counts - 1.
@@ -287,7 +287,7 @@ void NewPing::set_max_distance(unsigned int max_cm_distance) {
 		TIMSK4 = 0;
 	#elif defined (__arm__) && (defined (TEENSYDUINO) || defined (PARTICLE)) // Timer for Teensy 3.x & Particle
 		itimer.end();
-	#elif defined (USE_MEGA_TIMER5)
+	#elif defined (USE_MEGA_TIMER5) && defined(__AVR_ATmega2560__)
 		TIMSK5 &= ~(1<<OCIE5A);
 	#else
 		TIMSK2 &= ~(1<<OCIE2A);
@@ -313,7 +313,7 @@ void NewPing::set_max_distance(unsigned int max_cm_distance) {
 		TCNT2 = 0;                    // Reset Timer2 counter.
 	#elif defined (__arm__) && (defined (TEENSYDUINO) || defined (PARTICLE))
 		timer_stop(); // Stop the timer.
-	#elif defined (USE_MEGA_TIMER5)
+	#elif defined (USE_MEGA_TIMER5) && defined(__AVR_ATmega2560__)
 		timer_stop();        // Disable Timer5 interrupt.
 		ASSR &= ~(1<<AS2);   // Set clock, not pin.
 		TCCR5A = (1<<WGM21); // Set Timer5 to CTC mode.
@@ -346,7 +346,7 @@ void NewPing::set_max_distance(unsigned int max_cm_distance) {
 	}
 	#elif defined (__arm__)
 		// Do nothing...
-	#elif defined (USE_MEGA_TIMER5)
+	#elif defined (USE_MEGA_TIMER5) && defined(__AVR_ATmega2560__)
 	ISR(TIMER5_COMPA_vect) {
 		intFunc(); // Call wrapped function.
 	}

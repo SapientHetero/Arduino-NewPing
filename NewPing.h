@@ -182,6 +182,8 @@
 		#define US_ROUNDTRIP_CM 50  // Every 50uS PWM signal is low indicates 1cm distance. Default=50
 		#define US_ROUNDTRIP_IN 127 // If 50uS is 1cm, 1 inch would be 127uS (50 x 2.54 = 127). Default=127
 	#endif
+	#define ECHO_TIMEOUT 0xFFFFFFFFUL
+	#define ECHO_WAIT 0UL
 
 	// Conversion from uS to distance (round result to nearest cm or inch).
 	#define NewPingConvert(echoTime, conversionFactor) (max(((unsigned int)echoTime + conversionFactor / 2) / conversionFactor, (echoTime ? 1 : 0)))
@@ -229,7 +231,7 @@
 			static unsigned int convert_in(unsigned int echoTime);
 	#if TIMER_ENABLED == true
 			void ping_timer(void (*userFunc)(void), unsigned int max_cm_distance = 0);
-			boolean check_timer();
+			unsigned long check_timer();
 			unsigned long ping_result;
 			static void timer_us(unsigned int frequency, void (*userFunc)(void));
 			static void timer_ms(unsigned long frequency, void (*userFunc)(void));
